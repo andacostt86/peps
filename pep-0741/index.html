@@ -1,0 +1,604 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>PEP 741 – Python Configuration C API | peps.python.org</title>
+    <link rel="shortcut icon" href="../_static/py.png">
+    <link rel="canonical" href="https://peps.python.org/pep-0741/">
+    <link rel="stylesheet" href="../_static/style.css" type="text/css">
+    <link rel="stylesheet" href="../_static/mq.css" type="text/css">
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" media="(prefers-color-scheme: light)" id="pyg-light">
+    <link rel="stylesheet" href="../_static/pygments_dark.css" type="text/css" media="(prefers-color-scheme: dark)" id="pyg-dark">
+    <link rel="alternate" type="application/rss+xml" title="Latest PEPs" href="https://peps.python.org/peps.rss">
+    <meta name="description" content="Python Enhancement Proposals (PEPs)">
+</head>
+<body>
+    
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-sun-half" viewBox="0 0 24 24" pointer-events="all">
+    <title>Following system colour scheme</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"></circle>
+      <path d="M12 3v18m0-12l4.65-4.65M12 14.3l7.37-7.37M12 19.6l8.85-8.85"></path>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24" pointer-events="all">
+    <title>Selected dark colour scheme</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z"></path>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24" pointer-events="all">
+    <title>Selected light colour scheme</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+</svg>
+    <script>
+
+        document.documentElement.dataset.colour_scheme = localStorage.getItem("colour_scheme") || "auto"
+    </script>
+    <section id="pep-page-section">
+        <header>
+            <h1>Python Enhancement Proposals</h1>
+            <ul class="breadcrumbs">
+                <li><a href="https://www.python.org/" title="The Python Programming Language">Python</a> &raquo; </li>
+                <li><a href="../pep-0000/">PEP Index</a> &raquo; </li>
+                <li>PEP 741</li>
+            </ul>
+            <button id="colour-scheme-cycler" onClick="setColourScheme(nextColourScheme())">
+                <svg aria-hidden="true" class="colour-scheme-icon-when-auto"><use href="#svg-sun-half"></use></svg>
+                <svg aria-hidden="true" class="colour-scheme-icon-when-dark"><use href="#svg-moon"></use></svg>
+                <svg aria-hidden="true" class="colour-scheme-icon-when-light"><use href="#svg-sun"></use></svg>
+                <span class="visually-hidden">Toggle light / dark / auto colour theme</span>
+            </button>
+        </header>
+        <article>
+            <section id="pep-content">
+<h1 class="page-title">PEP 741 – Python Configuration C API</h1>
+<dl class="rfc2822 field-list simple">
+<dt class="field-odd">Author<span class="colon">:</span></dt>
+<dd class="field-odd">Victor Stinner &lt;vstinner&#32;&#97;t&#32;python.org&gt;</dd>
+<dt class="field-even">Discussions-To<span class="colon">:</span></dt>
+<dd class="field-even"><a class="reference external" href="https://discuss.python.org/t/pep-741-python-configuration-c-api/43637">Discourse thread</a></dd>
+<dt class="field-odd">Status<span class="colon">:</span></dt>
+<dd class="field-odd"><abbr title="Proposal under active discussion and revision">Draft</abbr></dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><abbr title="Normative PEP with a new feature for Python, implementation change for CPython or interoperability standard for the ecosystem">Standards Track</abbr></dd>
+<dt class="field-odd">Created<span class="colon">:</span></dt>
+<dd class="field-odd">18-Jan-2024</dd>
+<dt class="field-even">Python-Version<span class="colon">:</span></dt>
+<dd class="field-even">3.13</dd>
+<dt class="field-odd">Post-History<span class="colon">:</span></dt>
+<dd class="field-odd"><a class="reference external" href="https://discuss.python.org/t/pep-741-python-configuration-c-api/43637" title="Discourse thread">19-Jan-2024</a></dd>
+</dl>
+<hr class="docutils" />
+<section id="contents">
+<details><summary>Table of Contents</summary><ul class="simple">
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#rationale">Rationale</a><ul>
+<li><a class="reference internal" href="#pyconfig-is-not-part-of-the-limited-c-api">PyConfig is not part of the limited C API</a></li>
+<li><a class="reference internal" href="#deprecated-legacy-api">Deprecated legacy API</a></li>
+<li><a class="reference internal" href="#get-the-current-configuration">Get the current configuration</a></li>
+<li><a class="reference internal" href="#security-fix">Security fix</a></li>
+<li><a class="reference internal" href="#redundancy-between-pypreconfig-and-pyconfig">Redundancy between PyPreConfig and PyConfig</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#specification">Specification</a><ul>
+<li><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+<li><a class="reference internal" href="#configure-the-python-initialization">Configure the Python initialization</a></li>
+<li><a class="reference internal" href="#error-handling">Error handling</a></li>
+<li><a class="reference internal" href="#get-current-configuration">Get current configuration</a></li>
+<li><a class="reference internal" href="#sys-get-config">sys.get_config()</a></li>
+<li><a class="reference internal" href="#custom-configuration-options">Custom configuration options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#initialize-python">Initialize Python</a></li>
+<li><a class="reference internal" href="#get-the-verbose-option">Get the verbose option</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#backwards-compatibility">Backwards Compatibility</a></li>
+<li><a class="reference internal" href="#rejected-ideas">Rejected Ideas</a><ul>
+<li><a class="reference internal" href="#configuration-as-text">Configuration as text</a></li>
+<li><a class="reference internal" href="#refer-to-an-option-with-an-integer">Refer to an option with an integer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#discussions">Discussions</a></li>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+</ul>
+</details></section>
+<section id="abstract">
+<h2><a class="toc-backref" href="#abstract" role="doc-backlink">Abstract</a></h2>
+<p>Add a C API to the limited C API to configure the Python
+preinitialization and initialization, and to get the current
+configuration. It can be used with the stable ABI.</p>
+<p>Add <code class="docutils literal notranslate"><span class="pre">sys.get_config(name)</span></code> function to get the current value of a
+configuration option.</p>
+<p>Allow setting custom configuration options, not used by Python but by
+third-party code. Options are referred to by their name as a string.</p>
+<p><a class="pep reference internal" href="../pep-0587/" title="PEP 587 – Python Initialization Configuration">PEP 587</a> “Python Initialization Configuration” unified all the ways to
+configure the Python <strong>initialization</strong>. This PEP unifies also the
+configuration of the Python <strong>preinitialization</strong> and the Python
+<strong>initialization</strong> in a single API.</p>
+</section>
+<section id="rationale">
+<h2><a class="toc-backref" href="#rationale" role="doc-backlink">Rationale</a></h2>
+<section id="pyconfig-is-not-part-of-the-limited-c-api">
+<h3><a class="toc-backref" href="#pyconfig-is-not-part-of-the-limited-c-api" role="doc-backlink">PyConfig is not part of the limited C API</a></h3>
+<p>When the first versions of <a class="pep reference internal" href="../pep-0587/" title="PEP 587 – Python Initialization Configuration">PEP 587</a> “Python Initialization Configuration”
+were discussed, there was a private field <code class="docutils literal notranslate"><span class="pre">_config_version</span></code> (<code class="docutils literal notranslate"><span class="pre">int</span></code>):
+the configuration version, used for ABI compatibility. It was decided
+that if an application embeds Python, it sticks to a Python version
+anyway, and so there is no need to bother with the ABI compatibility.</p>
+<p>The final PyConfig API of <a class="pep reference internal" href="../pep-0587/" title="PEP 587 – Python Initialization Configuration">PEP 587</a> is excluded from the limited C API
+since its main <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> structure is not versioned. Python cannot
+guarantee ABI backward and forward compatibility, it’s incompatible with
+the stable ABI.</p>
+<p>Since PyConfig was added to Python 3.8, the limited C API and the stable
+ABI are getting more popular. For example, Rust bindings such as the
+<a class="reference external" href="https://pyo3.rs/">PyO3 project</a> target the limited C API to embed
+Python in Rust. In practice, PyO3 can use non-limited C API for specific
+needs, but using them avoids the stable ABI advantages.</p>
+</section>
+<section id="deprecated-legacy-api">
+<h3><a class="toc-backref" href="#deprecated-legacy-api" role="doc-backlink">Deprecated legacy API</a></h3>
+<p>The legacy configuration API has been deprecated since Python 3.8:</p>
+<ul class="simple">
+<li>Set the initialization configuration such as <code class="docutils literal notranslate"><span class="pre">Py_SetPath()</span></code>:
+deprecated in Python 3.11.</li>
+<li>Global configuration variables such as <code class="docutils literal notranslate"><span class="pre">Py_VerboseFlag</span></code>:
+deprecated in Python 3.12.</li>
+<li>Get the current configuration such as <code class="docutils literal notranslate"><span class="pre">Py_GetPath()</span></code>:
+deprecated in Python 3.13.</li>
+</ul>
+</section>
+<section id="get-the-current-configuration">
+<h3><a class="toc-backref" href="#get-the-current-configuration" role="doc-backlink">Get the current configuration</a></h3>
+<p><a class="pep reference internal" href="../pep-0587/" title="PEP 587 – Python Initialization Configuration">PEP 587</a> has no API to <strong>get</strong> the <strong>current</strong> configuration, only to
+<strong>configure</strong> the Python <strong>initialization</strong>.</p>
+<p>For example, the global configuration variable
+<code class="docutils literal notranslate"><span class="pre">Py_UnbufferedStdioFlag</span></code> was deprecated in Python 3.12 and using
+<code class="docutils literal notranslate"><span class="pre">PyConfig.buffered_stdio</span></code> is recommended instead. It only works to
+configure Python, there is no public API to get
+<code class="docutils literal notranslate"><span class="pre">PyConfig.buffered_stdio</span></code>.</p>
+<p>Users of the limited C API are asking for a public API to get the
+current configuration.</p>
+</section>
+<section id="security-fix">
+<h3><a class="toc-backref" href="#security-fix" role="doc-backlink">Security fix</a></h3>
+<p>To fix <a class="reference external" href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-10735">CVE-2020-10735</a>,
+a denial-of-service when converting very a large string to an integer (in base
+10), it was discussed to add a new <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> member to stable
+branches which affects the ABI.</p>
+<p>Gregory P. Smith proposed a different API using text based configuration
+file to not be limited by <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> members: <a class="reference external" href="https://discuss.python.org/t/fr-allow-private-runtime-config-to-enable-extending-without-breaking-the-pyconfig-abi/18004">FR: Allow private
+runtime config to enable extending without breaking the PyConfig ABI</a>
+(August 2022).</p>
+<p>In the end, it was decided to not add a new <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> member to
+stable branches, but only add a new <code class="docutils literal notranslate"><span class="pre">PyConfig.int_max_str_digits</span></code>
+member to the development branch (which became Python 3.12). A dedicated
+private global variable (unrelated to <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code>) is used in stable
+branches.</p>
+</section>
+<section id="redundancy-between-pypreconfig-and-pyconfig">
+<h3><a class="toc-backref" href="#redundancy-between-pypreconfig-and-pyconfig" role="doc-backlink">Redundancy between PyPreConfig and PyConfig</a></h3>
+<p>The Python preinitialization uses the <code class="docutils literal notranslate"><span class="pre">PyPreConfig</span></code> structure and the
+Python initialization uses the <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> structure. Both structures
+have four duplicated members: <code class="docutils literal notranslate"><span class="pre">dev_mode</span></code>, <code class="docutils literal notranslate"><span class="pre">parse_argv</span></code>, <code class="docutils literal notranslate"><span class="pre">isolated</span></code>
+and <code class="docutils literal notranslate"><span class="pre">use_environment</span></code>.</p>
+<p>The redundancy is caused by the fact that the two structures are
+separated, whereas some <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> members are needed by the
+preinitialization.</p>
+</section>
+</section>
+<section id="specification">
+<h2><a class="toc-backref" href="#specification" role="doc-backlink">Specification</a></h2>
+<p>C API:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> structure</li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_Python_New()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_Isolated_New()</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_Free(config)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetInt(config,</span> <span class="pre">name,</span> <span class="pre">value)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetStr(config,</span> <span class="pre">name,</span> <span class="pre">value)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetWStr(config,</span> <span class="pre">name,</span> <span class="pre">value)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetStrList(config,</span> <span class="pre">name,</span> <span class="pre">length,</span> <span class="pre">items)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetWStrList(config,</span> <span class="pre">name,</span> <span class="pre">length,</span> <span class="pre">items)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">Py_InitializeFromInitConfig(config)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_Exception(config)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_GetError(config,</span> <span class="pre">&amp;err_msg)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyInitConfig_GetExitCode(config,</span> <span class="pre">&amp;exitcode)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">Py_ExitWithInitConfig(config)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyConfig_Get(name)</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyConfig_GetInt(name,</span> <span class="pre">&amp;value)</span></code></li>
+</ul>
+<p>Python API:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">sys.get_config(name)</span></code></li>
+</ul>
+<p>The C API uses null-terminated UTF-8 encoded strings to refer to a
+configuration option.</p>
+<p>All C API functions are added to the limited C API version 3.13.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> structure is implemented by combining the three
+structures of the <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> API:</p>
+<ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">PyPreConfig</span> <span class="pre">preconfig</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyConfig</span> <span class="pre">config</span></code></li>
+<li><code class="docutils literal notranslate"><span class="pre">PyStatus</span> <span class="pre">status</span></code></li>
+</ul>
+<p>The <code class="docutils literal notranslate"><span class="pre">PyStatus</span></code> status is no longer separated, but part of the unified
+<code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> structure, which makes the API easier to use.</p>
+<section id="configuration-options">
+<h3><a class="toc-backref" href="#configuration-options" role="doc-backlink">Configuration Options</a></h3>
+<p>Configuration options are named after <code class="docutils literal notranslate"><span class="pre">PyPreConfig</span></code> and
+<code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> structure members such as <code class="docutils literal notranslate"><span class="pre">&quot;verbose&quot;</span></code>
+(<code class="docutils literal notranslate"><span class="pre">PyConfig.verbose</span></code>), <code class="docutils literal notranslate"><span class="pre">&quot;buffered_stdio&quot;</span></code>
+(<code class="docutils literal notranslate"><span class="pre">PyConfig.buffered_stdio</span></code>), or <code class="docutils literal notranslate"><span class="pre">&quot;allocator&quot;</span></code>
+(<code class="docutils literal notranslate"><span class="pre">PyPreConfig.allocator</span></code>).</p>
+<p>The type of configuration options depends on the option. For example,
+the <code class="docutils literal notranslate"><span class="pre">&quot;verbose&quot;</span></code> option type is an integer, whereas
+<code class="docutils literal notranslate"><span class="pre">&quot;module_search_paths&quot;</span></code> option type is an array of wide strings.</p>
+<p>See the <a class="reference external" href="https://docs.python.org/dev/c-api/init_config.html#pyconfig">PyConfig documentation</a>
+and the <a class="reference external" href="https://docs.python.org/dev/c-api/init_config.html#pypreconfig">PyPreConfig documentation</a>.</p>
+</section>
+<section id="configure-the-python-initialization">
+<h3><a class="toc-backref" href="#configure-the-python-initialization" role="doc-backlink">Configure the Python initialization</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> structure:</dt><dd>Opaque structure to configure the Python preinitialization and the
+Python initialization.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PyInitConfig*</span> <span class="pre">PyInitConfig_Python_New(void)</span></code>:</dt><dd>Create a new initialization configuration using default values
+of the <a class="reference external" href="https://docs.python.org/dev/c-api/init_config.html#python-configuration">Python Configuration</a>.<p>It must be freed with <code class="docutils literal notranslate"><span class="pre">PyInitConfig_Free()</span></code>.</p>
+<p>Return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> on memory allocation failure.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">PyInitConfig*</span> <span class="pre">PyInitConfig_Isolated_New(void)</span></code>:</dt><dd>Similar to <code class="docutils literal notranslate"><span class="pre">PyInitConfig_Python_New()</span></code>, but use default values
+of the <a class="reference external" href="https://docs.python.org/dev/c-api/init_config.html#isolated-configuration">Isolated Configuration</a>.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">PyInitConfig_Free(PyInitConfig</span> <span class="pre">*config)</span></code>:</dt><dd>Free memory of an initialization configuration.</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_SetInt(PyInitConfig</span> <span class="pre">*config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">int64_t</span> <span class="pre">value)</span></code>:</dt><dd>Set an integer configuration option.<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_SetStr(PyInitConfig</span> <span class="pre">*config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*value)</span></code>:</dt><dd>Set a string configuration option from a null-terminated bytes
+string.<p>The bytes string is decoded by <code class="docutils literal notranslate"><span class="pre">Py_DecodeLocale()</span></code>. If Python is
+not yet preinitialized, this function preinitializes it to ensure
+that encodings are properly configured.</p>
+<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_SetWStr(PyInitConfig</span> <span class="pre">*config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">const</span> <span class="pre">wchar_t</span> <span class="pre">*value)</span></code>:</dt><dd>Set a string configuration option from a null-terminated wide
+string.<p>If Python is not yet preinitialized, this function preinitializes
+it.</p>
+<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_SetStrList(PyInitConfig</span> <span class="pre">*config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">size_t</span> <span class="pre">length,</span> <span class="pre">char</span> <span class="pre">*</span> <span class="pre">const</span> <span class="pre">*items)</span></code>:</dt><dd>Set a string list configuration option from an array of
+null-terminated bytes strings.<p>The bytes string is decoded by <a class="reference external" href="https://docs.python.org/3/c-api/sys.html#c.Py_DecodeLocale" title="(in Python v3.12)"><code class="xref c c-func docutils literal notranslate"><span class="pre">Py_DecodeLocale()</span></code></a>. If Python
+is not yet preinitialized, this function preinitializes it to ensure
+that encodings are properly configured.</p>
+<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_SetWStrList(PyInitConfig</span> <span class="pre">*config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">size_t</span> <span class="pre">length,</span> <span class="pre">wchar_t</span> <span class="pre">*</span> <span class="pre">const</span> <span class="pre">*items)</span></code>:</dt><dd>Set a string list configuration option from an error of
+null-terminated wide strings.<p>If Python is not yet preinitialized, this function preinitializes
+it.</p>
+<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Py_PreInitializeFromInitConfig(PyInitConfig</span> <span class="pre">*config)</span></code>:</dt><dd>Preinitialize Python from the initialization configuration.<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">Py_InitializeFromInitConfig(PyInitConfig</span> <span class="pre">*config)</span></code>:</dt><dd>Initialize Python from the initialization configuration.<ul class="simple">
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> on success.</li>
+<li>Set an error in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+<li>Set an exit code in <em>config</em> and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on exit.</li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="error-handling">
+<h3><a class="toc-backref" href="#error-handling" role="doc-backlink">Error handling</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_Exception(PyInitConfig*</span> <span class="pre">config)</span></code>:</dt><dd>Check if an exception is set in <em>config</em>:<ul class="simple">
+<li>Return non-zero if an error was set or if an exit code was set.</li>
+<li>Return zero otherwise.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_GetError(PyInitConfig*</span> <span class="pre">config,</span> <span class="pre">const</span> <span class="pre">char</span> <span class="pre">**err_msg)</span></code>:</dt><dd>Get the <em>config</em> error message.<ul class="simple">
+<li>Set <em>*err_msg</em> and return <code class="docutils literal notranslate"><span class="pre">1</span></code> if an error is set.</li>
+<li>Set <em>*err_msg</em> to <code class="docutils literal notranslate"><span class="pre">NULL</span></code> and return <code class="docutils literal notranslate"><span class="pre">0</span></code> otherwise.</li>
+</ul>
+<p>An error message is an UTF-8 encoded string.</p>
+<p>The error message remains valid until a <code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> function is
+called with <em>config</em>. The caller doesn’t have to free the error
+message.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyInitConfig_GetExitCode(PyInitConfig*</span> <span class="pre">config,</span> <span class="pre">int</span> <span class="pre">*exitcode)</span></code>:</dt><dd>Get the <em>config</em> exit code.<ul class="simple">
+<li>Set <em>*exitcode</em> and return <code class="docutils literal notranslate"><span class="pre">1</span></code> if an exit code is set.</li>
+<li>Return <code class="docutils literal notranslate"><span class="pre">0</span></code> otherwise.</li>
+</ul>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">void</span> <span class="pre">Py_ExitWithInitConfig(PyInitConfig</span> <span class="pre">*config)</span></code>:</dt><dd>Exit Python and free memory of an initialization configuration.<p>If an error message is set, display the error message.</p>
+<p>If an exit code is set, use it to exit the process.</p>
+<p>The function does not return.</p>
+</dd>
+</dl>
+</section>
+<section id="get-current-configuration">
+<h3><a class="toc-backref" href="#get-current-configuration" role="doc-backlink">Get current configuration</a></h3>
+<dl>
+<dt><code class="docutils literal notranslate"><span class="pre">PyObject*</span> <span class="pre">PyConfig_Get(const</span> <span class="pre">char</span> <span class="pre">*name)</span></code>:</dt><dd>Get the current value of a configuration option as an object.<ul class="simple">
+<li>Return a new reference on success.</li>
+<li>Set an exception and return <code class="docutils literal notranslate"><span class="pre">NULL</span></code> on error.</li>
+</ul>
+<p>The object type depends on the option.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">PyConfig_GetInt(const</span> <span class="pre">char</span> <span class="pre">*name,</span> <span class="pre">int</span> <span class="pre">*value)</span></code>:</dt><dd>Similar to <code class="docutils literal notranslate"><span class="pre">PyConfig_Get()</span></code>, but get the value as an integer.<ul class="simple">
+<li>Set <code class="docutils literal notranslate"><span class="pre">*value</span></code> and return <code class="docutils literal notranslate"><span class="pre">0</span></code> success.</li>
+<li>Set an exception and return <code class="docutils literal notranslate"><span class="pre">-1</span></code> on error.</li>
+</ul>
+</dd>
+</dl>
+</section>
+<section id="sys-get-config">
+<h3><a class="toc-backref" href="#sys-get-config" role="doc-backlink">sys.get_config()</a></h3>
+<p>Add <code class="docutils literal notranslate"><span class="pre">sys.get_config(name:</span> <span class="pre">str)</span></code> function which calls
+<code class="docutils literal notranslate"><span class="pre">PyConfig_Get()</span></code>:</p>
+<ul class="simple">
+<li>Return the configuration option value on success.</li>
+<li>Raise an exception on error.</li>
+</ul>
+</section>
+<section id="custom-configuration-options">
+<h3><a class="toc-backref" href="#custom-configuration-options" role="doc-backlink">Custom configuration options</a></h3>
+<p>It is possible to set custom configuration options, not used by Python
+but only by third-party code, by calling:
+<code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetInt(config,</span> <span class="pre">&quot;allow_custom_options&quot;,</span> <span class="pre">1)</span></code>. In this
+case, setting custom configuration options is accepted, rather than
+failing with an “unknown option” error. By default, setting custom
+configuration options is not allowed.</p>
+<p>Custom configuration options are set with the <code class="docutils literal notranslate"><span class="pre">PyInitConfig</span></code> API, such
+as <code class="docutils literal notranslate"><span class="pre">PyInitConfig_SetInt()</span></code>, and can be got later with the
+<code class="docutils literal notranslate"><span class="pre">PyConfig_Get()</span></code> API.</p>
+<p>To avoid conflicts with future Python configuration options, it is
+recommended to use a prefix separated by a colon. For example, an
+application called <code class="docutils literal notranslate"><span class="pre">myapp</span></code> can use the <code class="docutils literal notranslate"><span class="pre">&quot;myapp:verbose&quot;</span></code> option name
+instead of <code class="docutils literal notranslate"><span class="pre">&quot;verbose&quot;</span></code> name, to avoid conflict with the Python
+<code class="docutils literal notranslate"><span class="pre">verbose</span></code> option.</p>
+</section>
+</section>
+<section id="examples">
+<h2><a class="toc-backref" href="#examples" role="doc-backlink">Examples</a></h2>
+<section id="initialize-python">
+<h3><a class="toc-backref" href="#initialize-python" role="doc-backlink">Initialize Python</a></h3>
+<p>Example setting some configuration options of different types to
+initialize Python.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">init_python</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyInitConfig</span><span class="w"> </span><span class="o">*</span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">PyInitConfig_Python_New</span><span class="p">();</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">config</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="nb">NULL</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">printf</span><span class="p">(</span><span class="s">&quot;Init allocation error</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">);</span>
+<span class="w">        </span><span class="k">return</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set an integer (dev_mode)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyInitConfig_SetInt</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;dev_mode&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set a list of wide strings (argv)</span>
+<span class="w">    </span><span class="kt">wchar_t</span><span class="w"> </span><span class="o">*</span><span class="n">argv</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="sa">L</span><span class="s">&quot;my_program&quot;&quot;, L&quot;</span><span class="o">-</span><span class="n">c</span><span class="s">&quot;, L&quot;</span><span class="n">pass</span><span class="s">&quot;};</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyInitConfig_SetWStrList</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;argv&quot;</span><span class="p">,</span>
+<span class="w">                                 </span><span class="n">Py_ARRAY_LENGTH</span><span class="p">(</span><span class="n">argv</span><span class="p">),</span><span class="w"> </span><span class="n">argv</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set a wide string (program_name)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyInitConfig_SetWStr</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;program_name&quot;</span><span class="p">,</span><span class="w"> </span><span class="sa">L</span><span class="s">&quot;my_program&quot;</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Set a list of bytes strings (xoptions).</span>
+<span class="w">    </span><span class="c1">// Preinitialize implicitly Python to decode the bytes string.</span>
+<span class="w">    </span><span class="kt">char</span><span class="o">*</span><span class="w"> </span><span class="n">xoptions</span><span class="p">[]</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">{</span><span class="s">&quot;faulthandler&quot;</span><span class="p">};</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyInitConfig_SetStrList</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;xoptions&quot;</span><span class="p">,</span>
+<span class="w">                                </span><span class="n">Py_ARRAY_LENGTH</span><span class="p">(</span><span class="n">xoptions</span><span class="p">),</span><span class="w"> </span><span class="n">xoptions</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="k">goto</span><span class="w"> </span><span class="n">error</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+
+<span class="w">    </span><span class="c1">// Initialize Python with the configuration</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Py_InitializeFromInitConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">Py_ExitWithInitConfig</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="n">PyInitConfig_Free</span><span class="p">(</span><span class="n">config</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="get-the-verbose-option">
+<h3><a class="toc-backref" href="#get-the-verbose-option" role="doc-backlink">Get the verbose option</a></h3>
+<p>Example getting the configuration option <code class="docutils literal notranslate"><span class="pre">verbose</span></code>:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">int</span><span class="w"> </span><span class="nf">get_verbose</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="kt">int</span><span class="w"> </span><span class="n">verbose</span><span class="p">;</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">PyConfig_GetInt</span><span class="p">(</span><span class="s">&quot;verbose&quot;</span><span class="p">,</span><span class="w"> </span><span class="o">&amp;</span><span class="n">verbose</span><span class="p">)</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="c1">// Silently ignore the error</span>
+<span class="w">        </span><span class="n">PyErr_Clear</span><span class="p">();</span>
+<span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="mi">-1</span><span class="p">;</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="w">    </span><span class="k">return</span><span class="w"> </span><span class="n">verbose</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>On error, the function silently ignores the error and returns <code class="docutils literal notranslate"><span class="pre">-1</span></code>.</p>
+</section>
+</section>
+<section id="implementation">
+<h2><a class="toc-backref" href="#implementation" role="doc-backlink">Implementation</a></h2>
+<ul class="simple">
+<li>Issue: <a class="reference external" href="https://github.com/python/cpython/issues/107954">No limited C API to customize Python initialization</a></li>
+<li>PR: <a class="reference external" href="https://github.com/python/cpython/pull/110176">Add PyInitConfig C API</a></li>
+<li>PR: <a class="reference external" href="https://github.com/python/cpython/pull/112609">Add PyConfig_Get() function</a></li>
+</ul>
+</section>
+<section id="backwards-compatibility">
+<h2><a class="toc-backref" href="#backwards-compatibility" role="doc-backlink">Backwards Compatibility</a></h2>
+<p>Changes are fully backward compatible. Only new APIs are added.
+Existing API such as the <code class="docutils literal notranslate"><span class="pre">PyConfig</span></code> C API are left unchanged.</p>
+</section>
+<section id="rejected-ideas">
+<h2><a class="toc-backref" href="#rejected-ideas" role="doc-backlink">Rejected Ideas</a></h2>
+<section id="configuration-as-text">
+<h3><a class="toc-backref" href="#configuration-as-text" role="doc-backlink">Configuration as text</a></h3>
+<p>It was proposed to provide the configuration as text to make the API
+compatible with the stable ABI and to allow custom options.</p>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># integer</span>
+<span class="n">bytes_warning</span> <span class="o">=</span> <span class="mi">2</span>
+
+<span class="c1"># string</span>
+<span class="n">filesystem_encoding</span> <span class="o">=</span> <span class="s2">&quot;utf8&quot;</span>   <span class="c1"># comment</span>
+
+<span class="c1"># list of strings</span>
+<span class="n">argv</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;python&#39;</span><span class="p">,</span> <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>The API would take the configuration as a string, not as a file. Example
+with a hypothetical <code class="docutils literal notranslate"><span class="pre">PyInit_SetConfig()</span></code> function:</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="kt">void</span><span class="w"> </span><span class="nf">stable_abi_init_demo</span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">set_path</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">    </span><span class="n">PyInit_SetConfig</span><span class="p">(</span>
+<span class="w">        </span><span class="s">&quot;isolated = 1</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;argv = [&#39;python&#39;, &#39;-c&#39;, &#39;code&#39;]</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">        </span><span class="s">&quot;filesystem_encoding = &#39;utf-8&#39;</span><span class="se">\n</span><span class="s">&quot;</span>
+<span class="w">    </span><span class="p">);</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">set_path</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+<span class="w">        </span><span class="n">PyInit_SetConfig</span><span class="p">(</span><span class="s">&quot;pythonpath = &#39;/my/path&#39;&quot;</span><span class="p">);</span>
+<span class="w">    </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The example ignores error handling to make it easier to read.</p>
+<p>The problem is that generating such configuration text requires adding
+quotes to strings and to escape quotes in strings. Formatting an array
+of strings becomes non-trivial.</p>
+<p>Providing an API to format a string or an array of strings is not really
+worth it, whereas Python can provide directly an API to set a
+configuration option where the value is passed directly as a string or
+an array of strings. It avoids giving special meaning to some
+characters, such as newline characters, which would have to be escaped.</p>
+</section>
+<section id="refer-to-an-option-with-an-integer">
+<h3><a class="toc-backref" href="#refer-to-an-option-with-an-integer" role="doc-backlink">Refer to an option with an integer</a></h3>
+<p>Using strings to refer to a configuration option requires comparing
+strings which can be slower than comparing integers.</p>
+<p>Use integers, similar to type “slots” such as <code class="docutils literal notranslate"><span class="pre">Py_tp_doc</span></code>, to refer to
+a configuration option. The <code class="docutils literal notranslate"><span class="pre">const</span> <span class="pre">char</span> <span class="pre">*name</span></code> parameter is replaced
+with <code class="docutils literal notranslate"><span class="pre">int</span> <span class="pre">option</span></code>.</p>
+<p>Accepting custom options is more likely to cause conflicts when using
+integers, since it’s harder to maintain “namespaces” (ranges) for
+integer options. Using strings, a simple prefix with a colon separator
+can be used.</p>
+<p>Integers also requires maintaining a list of integer constants and so
+make the C API and the Python API larger.</p>
+<p>Python 3.13 only has around 62 configuration options, and so performance
+is not really a blocker issue. If better performance is needed later, a
+hash table can be used to get an option by its name.</p>
+<p>If getting a configuration option is used in hot code, the value can be
+read once and cached. By the way, most configuration options cannot be
+changed at runtime.</p>
+</section>
+</section>
+<section id="discussions">
+<h2><a class="toc-backref" href="#discussions" role="doc-backlink">Discussions</a></h2>
+<ul class="simple">
+<li><a class="reference external" href="https://discuss.python.org/t/pep-741-python-configuration-c-api/43637">PEP 741: Python Configuration C API</a></li>
+<li><a class="reference external" href="https://discuss.python.org/t/fr-allow-private-runtime-config-to-enable-extending-without-breaking-the-pyconfig-abi/18004">FR: Allow private runtime config to enable extending without breaking
+the PyConfig ABI</a>
+(August 2022).</li>
+</ul>
+</section>
+<section id="copyright">
+<h2><a class="toc-backref" href="#copyright" role="doc-backlink">Copyright</a></h2>
+<p>This document is placed in the public domain or under the
+CC0-1.0-Universal license, whichever is more permissive.</p>
+</section>
+</section>
+<hr class="docutils" />
+<p>Source: <a class="reference external" href="https://github.com/python/peps/blob/main/peps/pep-0741.rst">https://github.com/python/peps/blob/main/peps/pep-0741.rst</a></p>
+<p>Last modified: <a class="reference external" href="https://github.com/python/peps/commits/main/pep-0741.rst">2024-01-19 17:00:45 GMT</a></p>
+
+        </article>
+        <nav id="pep-sidebar">
+            <h2>Contents</h2>
+            <ul>
+<li><a class="reference internal" href="#abstract">Abstract</a></li>
+<li><a class="reference internal" href="#rationale">Rationale</a><ul>
+<li><a class="reference internal" href="#pyconfig-is-not-part-of-the-limited-c-api">PyConfig is not part of the limited C API</a></li>
+<li><a class="reference internal" href="#deprecated-legacy-api">Deprecated legacy API</a></li>
+<li><a class="reference internal" href="#get-the-current-configuration">Get the current configuration</a></li>
+<li><a class="reference internal" href="#security-fix">Security fix</a></li>
+<li><a class="reference internal" href="#redundancy-between-pypreconfig-and-pyconfig">Redundancy between PyPreConfig and PyConfig</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#specification">Specification</a><ul>
+<li><a class="reference internal" href="#configuration-options">Configuration Options</a></li>
+<li><a class="reference internal" href="#configure-the-python-initialization">Configure the Python initialization</a></li>
+<li><a class="reference internal" href="#error-handling">Error handling</a></li>
+<li><a class="reference internal" href="#get-current-configuration">Get current configuration</a></li>
+<li><a class="reference internal" href="#sys-get-config">sys.get_config()</a></li>
+<li><a class="reference internal" href="#custom-configuration-options">Custom configuration options</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#examples">Examples</a><ul>
+<li><a class="reference internal" href="#initialize-python">Initialize Python</a></li>
+<li><a class="reference internal" href="#get-the-verbose-option">Get the verbose option</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#implementation">Implementation</a></li>
+<li><a class="reference internal" href="#backwards-compatibility">Backwards Compatibility</a></li>
+<li><a class="reference internal" href="#rejected-ideas">Rejected Ideas</a><ul>
+<li><a class="reference internal" href="#configuration-as-text">Configuration as text</a></li>
+<li><a class="reference internal" href="#refer-to-an-option-with-an-integer">Refer to an option with an integer</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#discussions">Discussions</a></li>
+<li><a class="reference internal" href="#copyright">Copyright</a></li>
+</ul>
+
+            <br>
+            <a id="source" href="https://github.com/python/peps/blob/main/peps/pep-0741.rst">Page Source (GitHub)</a>
+        </nav>
+    </section>
+    <script src="../_static/colour_scheme.js"></script>
+    <script src="../_static/wrap_tables.js"></script>
+    <script src="../_static/sticky_banner.js"></script>
+</body>
+</html>
